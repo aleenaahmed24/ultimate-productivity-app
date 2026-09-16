@@ -30,7 +30,10 @@ export function TopBar({ section }: { section: SectionId }) {
   const copy = TITLES[section]
 
   return (
-    <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--bg)]/85 backdrop-blur px-4 py-4 sm:px-8">
+    <header
+      className="sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--bg)]/85 backdrop-blur px-4 py-4 sm:px-8"
+      style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}
+    >
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-[var(--text)] sm:text-2xl">{copy.title}</h1>

@@ -46,7 +46,7 @@ function App() {
   return (
     <div className="flex min-h-screen bg-[var(--bg)] text-[var(--text)]">
       <Sidebar active={section} onChange={setSection} />
-      <div className="flex min-h-screen flex-1 flex-col pb-16 md:pb-0">
+      <div className="app-scroll-pad flex min-h-screen flex-1 flex-col">
         <TopBar section={section} />
         <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
           <SectionView section={section} onNavigate={setSection} />

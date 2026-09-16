@@ -217,6 +217,15 @@ body {
   box-shadow: 0 1px 2px var(--shadow-color), 0 8px 24px -12px var(--shadow-color);
 }
 
+.app-scroll-pad {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+}
+@media (min-width: 768px) {
+  .app-scroll-pad {
+    padding-bottom: 0;
+  }
+}
+
 @keyframes pop-in {
   0% {
     transform: scale(0.9);
