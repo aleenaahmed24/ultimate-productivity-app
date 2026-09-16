@@ -6,7 +6,7 @@ import { EmptyState } from '../components/EmptyState'
 import { TaskRow } from '../components/TaskRow'
 import { TaskEditorModal, type TaskDraft } from '../components/TaskEditorModal'
 import type { Task } from '../types'
-import { ProgressBar } from '../components/ProgressBar'
+import { CircleProgress } from '../components/CircleProgress'
 import { GoogleCalendarCard } from '../components/GoogleCalendarCard'
 
 const RECOMMENDED_LIMIT = 5
@@ -34,22 +34,24 @@ export function PrioritiesSection() {
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 card-shadow">
-        <div className="mb-3 flex items-center justify-between">
+      <div className="flex items-center gap-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 card-shadow">
+        <CircleProgress
+          progress={priorities.length ? done.length / priorities.length : 0}
+          size={80}
+          strokeWidth={9}
+          label={`${done.length}/${priorities.length || 0}`}
+        />
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 text-sm font-medium text-[var(--text-muted)]">
             <Target size={16} />
             Focus for today
           </div>
-          <span className="text-sm font-semibold text-[var(--text)]">
-            {done.length}/{priorities.length || 0}
-          </span>
+          <p className="mt-1.5 text-xs text-[var(--text-muted)]">
+            {priorities.length > RECOMMENDED_LIMIT
+              ? `You've picked ${priorities.length} priorities — consider trimming to your top ${RECOMMENDED_LIMIT} for real focus.`
+              : `Choose up to ${RECOMMENDED_LIMIT} things that would make today a win. Completing a priority earns bonus points.`}
+          </p>
         </div>
-        <ProgressBar progress={priorities.length ? done.length / priorities.length : 0} />
-        <p className="mt-3 text-xs text-[var(--text-muted)]">
-          {priorities.length > RECOMMENDED_LIMIT
-            ? `You've picked ${priorities.length} priorities — consider trimming to your top ${RECOMMENDED_LIMIT} for real focus.`
-            : `Choose up to ${RECOMMENDED_LIMIT} things that would make today a win. Completing a priority earns bonus points.`}
-        </p>
       </div>
 
       <GoogleCalendarCard />
