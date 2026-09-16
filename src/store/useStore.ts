@@ -8,6 +8,7 @@ import type {
   Priority,
   PointsLogEntry,
   RedemptionLogEntry,
+  Reminder,
   Reward,
   Settings,
   Task,
@@ -16,6 +17,7 @@ import type {
 import {
   BRAIN_DUMP_CONVERT_POINTS,
   HABIT_BASE_POINTS,
+  REMINDER_POINTS,
   TASK_POINTS,
   TODAY_PRIORITY_BONUS,
   calcHabitStreak,
@@ -78,6 +80,7 @@ interface StoreState {
   tasks: Task[]
   brainDump: BrainDumpItem[]
   habits: Habit[]
+  reminders: Reminder[]
   rewards: Reward[]
   pointsLog: PointsLogEntry[]
   redemptions: RedemptionLogEntry[]
@@ -115,6 +118,11 @@ interface StoreState {
   addHabit: (name: string, color: string, icon: string, frequency: Habit['frequency']) => void
   updateHabit: (id: string, patch: Partial<Habit>) => void
   deleteHabit: (id: string) => void
+
+  // reminders
+  addReminder: (text: string, time: string | null) => void
+  toggleReminder: (id: string) => void
+  deleteReminder: (id: string) => void
   toggleHabitDate: (id: string, dateKey: string) => void
 
   // rewards
@@ -139,6 +147,7 @@ export const useStore = create<StoreState>()(
       tasks: [],
       brainDump: [],
       habits: DEFAULT_HABITS,
+      reminders: [],
       rewards: DEFAULT_REWARDS,
       pointsLog: [],
       redemptions: [],
@@ -292,6 +301,29 @@ export const useStore = create<StoreState>()(
           get().awardPoints(pts, `${habit.name} — day ${current} streak`)
         }
       },
+
+      addReminder: (text, time) =>
+        set((s) => ({
+          reminders: [
+            ...s.reminders,
+            { id: uid(), text, time, done: false, createdAt: Date.now() },
+          ],
+        })),
+
+      toggleReminder: (id) => {
+        const reminder = get().reminders.find((r) => r.id === id)
+        if (!reminder) return
+        const willComplete = !reminder.done
+        set((s) => ({
+          reminders: s.reminders.map((r) => (r.id === id ? { ...r, done: willComplete } : r)),
+        }))
+        if (willComplete) {
+          get().awardPoints(REMINDER_POINTS, `Reminder: "${reminder.text}"`)
+        }
+      },
+
+      deleteReminder: (id) =>
+        set((s) => ({ reminders: s.reminders.filter((r) => r.id !== id) })),
 
       addReward: (title, cost, icon) =>
         set((s) => ({

@@ -109,3 +109,11 @@ export interface GoogleCalendarEvent {
   allDay: boolean
   htmlLink: string
 }
+
+export interface Reminder {
+  id: string
+  text: string
+  time: string | null
+  done: boolean
+  createdAt: number
+}

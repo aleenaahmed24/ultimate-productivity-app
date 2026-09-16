@@ -9,6 +9,7 @@ export const TASK_POINTS: Record<Priority, number> = {
 export const TODAY_PRIORITY_BONUS = 15
 export const HABIT_BASE_POINTS = 15
 export const BRAIN_DUMP_CONVERT_POINTS = 2
+export const REMINDER_POINTS = 5
 
 export function habitStreakBonus(streak: number): number {
   if (streak <= 1) return 0

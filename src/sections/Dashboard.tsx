@@ -4,19 +4,20 @@ import confetti from 'canvas-confetti'
 import { useStore } from '../store/useStore'
 import { getLevelInfo, calcHabitStreak, todayKey } from '../utils/gamification'
 import { ProgressBar } from '../components/ProgressBar'
-import { CircleProgress } from '../components/CircleProgress'
+import { DailyBlocksRing, type RingBlock } from '../components/DailyBlocksRing'
 import { TaskRow } from '../components/TaskRow'
 import { getIcon } from '../components/icons'
 import { GoogleCalendarCard } from '../components/GoogleCalendarCard'
+import { QuickRemindersCard } from '../components/QuickRemindersCard'
 import type { SectionId } from '../types'
 
 function dailyProgressMessage(pct: number, total: number) {
-  if (total === 0) return "Add a priority or set a due date to track today's progress."
+  if (total === 0) return 'Add a priority, habit, or due-today task to fill in your board.'
   if (pct >= 1) return "Everything for today is done. Nice work!"
   if (pct === 0) return "Nothing checked off yet — let's get moving."
   if (pct >= 0.75) return 'Almost there — just a bit more.'
   if (pct >= 0.5) return "Halfway there — keep it going."
-  return "You've got this. One task at a time."
+  return "You've got this. One block at a time."
 }
 
 export function Dashboard({ onNavigate }: { onNavigate: (s: SectionId) => void }) {
@@ -34,16 +35,40 @@ export function Dashboard({ onNavigate }: { onNavigate: (s: SectionId) => void }
   const habitsRemaining = habits.filter((h) => !h.completions[today])
   const activeTasks = tasks.filter((t) => !t.completed)
 
-  const dailyTasks = useMemo(
-    () => tasks.filter((t) => t.isTodayPriority || t.dueDate === today),
+  const dueTodayTasks = useMemo(
+    () => tasks.filter((t) => !t.isTodayPriority && t.dueDate === today),
     [tasks, today],
   )
-  const dailyDone = dailyTasks.filter((t) => t.completed).length
-  const dailyProgress = dailyTasks.length ? dailyDone / dailyTasks.length : 0
+
+  const blocks: RingBlock[] = useMemo(
+    () => [
+      ...priorities.map((t) => ({
+        id: `priority-${t.id}`,
+        done: t.completed,
+        colorDone: 'var(--primary)',
+        colorMuted: 'var(--primary-soft)',
+      })),
+      ...dueTodayTasks.map((t) => ({
+        id: `task-${t.id}`,
+        done: t.completed,
+        colorDone: 'var(--accent)',
+        colorMuted: 'var(--accent-soft)',
+      })),
+      ...habits.map((h) => ({
+        id: `habit-${h.id}`,
+        done: !!h.completions[today],
+        colorDone: h.color,
+        colorMuted: `${h.color}33`,
+      })),
+    ],
+    [priorities, dueTodayTasks, habits, today],
+  )
+  const blocksDone = blocks.filter((b) => b.done).length
+  const dailyProgress = blocks.length ? blocksDone / blocks.length : 0
 
   const celebratedRef = useRef(false)
   useEffect(() => {
-    if (dailyTasks.length > 0 && dailyProgress >= 1 && !celebratedRef.current) {
+    if (blocks.length > 0 && dailyProgress >= 1 && !celebratedRef.current) {
       celebratedRef.current = true
       confetti({
         particleCount: 160,
@@ -54,28 +79,54 @@ export function Dashboard({ onNavigate }: { onNavigate: (s: SectionId) => void }
     } else if (dailyProgress < 1) {
       celebratedRef.current = false
     }
-  }, [dailyProgress, dailyTasks.length])
+  }, [dailyProgress, blocks.length])
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6">
-      <div className="flex flex-col items-center gap-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 card-shadow sm:flex-row sm:items-center sm:gap-6">
-        <CircleProgress
-          progress={dailyProgress}
-          size={104}
-          strokeWidth={11}
-          label={dailyTasks.length ? `${dailyDone}/${dailyTasks.length}` : '—'}
-          sublabel="Today"
-        />
-        <div className="text-center sm:text-left">
-          <p className="text-sm font-semibold uppercase tracking-wide text-[var(--text-muted)]">
-            Today's progress
-          </p>
-          <p className="mt-1 text-lg font-bold text-[var(--text)]">
-            {dailyProgressMessage(dailyProgress, dailyTasks.length)}
-          </p>
-          <p className="mt-1 text-xs text-[var(--text-muted)]">
-            Counts today's priorities and tasks due today.
-          </p>
+      <div className="flex flex-col items-center gap-6 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 card-shadow sm:flex-row sm:items-center">
+        <DailyBlocksRing blocks={blocks} />
+        <div className="flex flex-1 flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-center sm:text-left">
+            <p className="text-sm font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+              Today's board
+            </p>
+            <p className="mt-1 text-lg font-bold text-[var(--text)]">
+              {dailyProgressMessage(dailyProgress, blocks.length)}
+            </p>
+            <p className="mt-1 text-xs text-[var(--text-muted)]">
+              {blocksDone}/{blocks.length} blocks done across priorities, habits, and today's tasks.
+            </p>
+          </div>
+
+          <div className="flex shrink-0 flex-row gap-4 sm:flex-col sm:gap-2">
+            <LegendRow
+              icon={Star}
+              label="Priorities"
+              done={priorities.filter((p) => p.completed).length}
+              total={priorities.length}
+              color="var(--primary)"
+              bg="var(--primary-soft)"
+              onClick={() => onNavigate('priorities')}
+            />
+            <LegendRow
+              icon={Repeat}
+              label="Habits"
+              done={habits.filter((h) => !!h.completions[today]).length}
+              total={habits.length}
+              color="#22c55e"
+              bg="#22c55e22"
+              onClick={() => onNavigate('habits')}
+            />
+            <LegendRow
+              icon={ListChecks}
+              label="Due today"
+              done={dueTodayTasks.filter((t) => t.completed).length}
+              total={dueTodayTasks.length}
+              color="var(--accent)"
+              bg="var(--accent-soft)"
+              onClick={() => onNavigate('tasks')}
+            />
+          </div>
         </div>
       </div>
 
@@ -161,7 +212,12 @@ export function Dashboard({ onNavigate }: { onNavigate: (s: SectionId) => void }
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <QuickRemindersCard />
+        <GoogleCalendarCard />
+      </div>
+
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div className="flex flex-col gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 card-shadow">
           <SectionHeader icon={ListChecks} title="Active tasks" onClick={() => onNavigate('tasks')} />
           <p className="text-3xl font-bold text-[var(--text)]">{activeTasks.length}</p>
@@ -172,9 +228,44 @@ export function Dashboard({ onNavigate }: { onNavigate: (s: SectionId) => void }
           <p className="text-3xl font-bold text-[var(--text)]">{brainDump.length}</p>
           <p className="text-sm text-[var(--text-muted)]">unsorted items waiting</p>
         </div>
-        <GoogleCalendarCard />
       </div>
     </div>
+  )
+}
+
+function LegendRow({
+  icon: Icon,
+  label,
+  done,
+  total,
+  color,
+  bg,
+  onClick,
+}: {
+  icon: typeof Star
+  label: string
+  done: number
+  total: number
+  color: string
+  bg: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-2 rounded-lg px-2 py-1 text-left hover:bg-[var(--surface-2)]"
+    >
+      <span
+        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md"
+        style={{ background: bg, color }}
+      >
+        <Icon size={12} />
+      </span>
+      <span className="text-xs font-medium text-[var(--text)]">{label}</span>
+      <span className="text-xs text-[var(--text-muted)]">
+        {done}/{total}
+      </span>
+    </button>
   )
 }
 
