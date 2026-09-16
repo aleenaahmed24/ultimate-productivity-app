@@ -4,6 +4,7 @@ import { getLevelInfo, calcHabitStreak, todayKey } from '../utils/gamification'
 import { ProgressBar } from '../components/ProgressBar'
 import { TaskRow } from '../components/TaskRow'
 import { getIcon } from '../components/icons'
+import { GoogleCalendarCard } from '../components/GoogleCalendarCard'
 import type { SectionId } from '../types'
 
 export function Dashboard({ onNavigate }: { onNavigate: (s: SectionId) => void }) {
@@ -105,7 +106,7 @@ export function Dashboard({ onNavigate }: { onNavigate: (s: SectionId) => void }
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <div className="flex flex-col gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 card-shadow">
           <SectionHeader icon={ListChecks} title="Active tasks" onClick={() => onNavigate('tasks')} />
           <p className="text-3xl font-bold text-[var(--text)]">{activeTasks.length}</p>
@@ -116,6 +117,7 @@ export function Dashboard({ onNavigate }: { onNavigate: (s: SectionId) => void }
           <p className="text-3xl font-bold text-[var(--text)]">{brainDump.length}</p>
           <p className="text-sm text-[var(--text-muted)]">unsorted items waiting</p>
         </div>
+        <GoogleCalendarCard />
       </div>
     </div>
   )

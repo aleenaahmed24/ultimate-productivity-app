@@ -7,6 +7,7 @@ import { TaskRow } from '../components/TaskRow'
 import { TaskEditorModal, type TaskDraft } from '../components/TaskEditorModal'
 import type { Task } from '../types'
 import { ProgressBar } from '../components/ProgressBar'
+import { GoogleCalendarCard } from '../components/GoogleCalendarCard'
 
 const RECOMMENDED_LIMIT = 5
 
@@ -50,6 +51,8 @@ export function PrioritiesSection() {
             : `Choose up to ${RECOMMENDED_LIMIT} things that would make today a win. Completing a priority earns bonus points.`}
         </p>
       </div>
+
+      <GoogleCalendarCard />
 
       <button
         onClick={() => {

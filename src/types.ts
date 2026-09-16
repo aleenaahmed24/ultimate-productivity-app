@@ -100,3 +100,12 @@ export type SectionId =
   | 'habits'
   | 'rewards'
   | 'settings'
+
+export interface GoogleCalendarEvent {
+  id: string
+  title: string
+  start: string | null
+  end: string | null
+  allDay: boolean
+  htmlLink: string
+}
